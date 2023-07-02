@@ -103,13 +103,14 @@ namespace MeasurTest.ViewModels
                     _selectedCity = "Запланированные замеры в городе: " + value;
                     OnPropertyChanged();
                     _selectedCity = value;
-                    FilteredMeasur = Measurements.Where(m => m.Address.Contains(_selectedCity) && !string.IsNullOrEmpty(m.ButtonDate)).ToList();
+                    
                     FilteredList = Measurements.Where(m => m.Address.Contains(_selectedCity)).ToList();
 
                     UpdateAvailableMeasurementsCount();
                 }
                 else
                 {
+                    FilteredMeasur = Measurements.Where(m => !string.IsNullOrEmpty(m.ButtonDate)).ToList();
                     FilteredList = Measurements;
                     CountMassage = string.Empty;
                     _selectedCity = "Запланированные замеры во всех городах";
