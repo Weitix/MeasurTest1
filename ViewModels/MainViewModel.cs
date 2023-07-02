@@ -3,164 +3,297 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using GalaSoft.MvvmLight.Command;
 using MeasurTest.Model;
 
 namespace MeasurTest.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+
+        private string _buttonContent;
+        private Measurement _selectedMeasurement;
+        private DateTime? _selectedDate;
+        private string _selectedCity;
+        private List<Measurement> _measurements;
+        private List<Measurement> _filteredList;
+        private List<Measurement> _filteredMeasur;
+        private int _availableMeasurementsCount;
+        private string _countMassage;
+        private Dictionary<string, Dictionary<DateTime, int>> _generatedMeasurementsCounts = new Dictionary<string, Dictionary<DateTime, int>>();
         public MainViewModel()
         {
             MeasurementModel measurementModel = new MeasurementModel();
             Measurements = measurementModel.GenerateRandomMeasurements(100);
+            FilteredMeasur = Measurements.Where(m => !string.IsNullOrEmpty(m.ButtonDate)).ToList();
+            IsButtonVisible = false;
+            
         }
 
-        private Measurement measurement;
-        public string idNumber
+        private bool isButtonEnabled;
+        public bool IsButtonEnabled
         {
-            get { return measurement.idNumber; }
+            get { return isButtonEnabled; }
             set
             {
-                if (measurement.idNumber != value)
+                if (isButtonEnabled != value)
                 {
-                    measurement.idNumber = value;
-                    OnPropertyChanged();
+                    isButtonEnabled = value;
+                    OnPropertyChanged(nameof(IsButtonEnabled));
+                    UpdateButtonVisibility();
                 }
             }
         }
-        public string FullName
-        {
-            get { return measurement.FullName; }
-            set
-            {
-                if (measurement.FullName != value)
-                {
-                    measurement.FullName = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        public string Address
-        {
-            get { return measurement.Address; }
-            set
-            {
-                if (measurement.Address != value)
-                {
-                    measurement.Address = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        public string PhoneNumber
-        {
-            get { return measurement.PhoneNumber; }
-            set
-            {
-                if (measurement.PhoneNumber != value)
-                {
-                    measurement.PhoneNumber = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        public DateTime? Date
-        {
-            get { return measurement.Date; }
-            set
-            {
-                if (measurement.Date != value)
-                {
-                    measurement.Date = value;
-                    OnPropertyChanged();
-                    UpdateAvailableMeasurementsCount();
-                }
-            }
-        }
-        public List<Measurement> Measurements { get; set; }
 
-        private List<Measurement> filteredList;
-        public List<Measurement> FilteredList
+        private bool isButtonVisible;
+        public bool IsButtonVisible
         {
-            get
-            {
-                if (string.IsNullOrEmpty(SelectedCity) || SelectedCity.Contains("город"))
-                    return Measurements;
-
-                return filteredList;
-            }
+            get { return isButtonVisible; }
             set
             {
-                filteredList = value;
+                if (isButtonVisible != value)
+                {
+                    isButtonVisible = value;
+                    OnPropertyChanged(nameof(IsButtonVisible));
+                }
+            }
+        }
+
+        public string ButtonContent
+        {
+            get => _buttonContent;
+            set
+            {
+                _buttonContent = value;
                 OnPropertyChanged();
             }
         }
 
-        private DateTime? selectedDate;
+        public Measurement SelectedMeasurement
+        {
+            get => _selectedMeasurement;
+            set
+            {
+                _selectedMeasurement = value;
+                OnPropertyChanged();
+            }
+        }
+
         public DateTime? SelectedDate
         {
-            get { return selectedDate; }
+            get => _selectedDate;
             set
             {
-                if (selectedDate != value)
-                {
-                    selectedDate = value;
-                    OnPropertyChanged();
-                    UpdateAvailableMeasurementsCount();
-                }
+                _selectedDate = value;
+                OnPropertyChanged();
+                UpdateAvailableMeasurementsCount();
             }
         }
 
-        private string availableMeasurementsCount;
-        public string AvailableMeasurementsCount
-        {
-            get { return availableMeasurementsCount; }
-            set
-            {
-                if (availableMeasurementsCount != value)
-                {
-                    availableMeasurementsCount = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        private void UpdateAvailableMeasurementsCount()
-        {
-            if (!string.IsNullOrEmpty(SelectedCity)&& SelectedCity != "Выберите город")
-            {
-                Random random = new Random();
-                AvailableMeasurementsCount = SelectedDate + " в городе " + SelectedCity + " доступно замеров: " + random.Next(1, 10).ToString();
-            }
-            else
-            {
-                AvailableMeasurementsCount = string.Empty;
-            }
-        }
-
-        private string selectedCity;
         public string SelectedCity
         {
-            get { return selectedCity; }
+            get => _selectedCity;
             set
             {
-                if (selectedCity != value )
+                if (_selectedCity != value && !value.Contains("город"))
                 {
-                    selectedCity = "Запланированные замеры в городе: " + value;
+                    _selectedCity = "Запланированные замеры в городе: " + value;
                     OnPropertyChanged();
-                    selectedCity = value;
-                    FilteredList = Measurements.Where(m => m.Address.Contains(selectedCity)).ToList();
+                    _selectedCity = value;
+                    FilteredMeasur = Measurements.Where(m => m.Address.Contains(_selectedCity) && !string.IsNullOrEmpty(m.ButtonDate)).ToList();
+                    FilteredList = Measurements.Where(m => m.Address.Contains(_selectedCity)).ToList();
+
                     UpdateAvailableMeasurementsCount();
                 }
                 else
                 {
-                    selectedCity = "Запланированные замеры во всех городах";
+                    FilteredList = Measurements;
+                    CountMassage = string.Empty;
+                    _selectedCity = "Запланированные замеры во всех городах";
                     OnPropertyChanged();
                 }
             }
         }
 
+        public List<Measurement> Measurements
+        {
+            get => _measurements;
+            set
+            {
+                _measurements = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public List<Measurement> FilteredMeasur
+        {
+            get => _filteredMeasur;
+            set
+            {
+                _filteredMeasur = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public List<Measurement> FilteredList
+        {
+            get => _filteredList ?? Measurements;
+            set
+            {
+                _filteredList = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int AvailableMeasurementsCount
+        {
+            get => _availableMeasurementsCount;
+            set
+            {
+                _availableMeasurementsCount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string CountMassage
+        {
+            get => _countMassage;
+            set
+            {
+                _countMassage = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private RelayCommand<object> _measureCommand;
+        public RelayCommand<object> MeasureCommand
+        {
+            get
+            {
+                if (_measureCommand == null)
+                    _measureCommand = new RelayCommand<object>(Button_Measure);
+                return _measureCommand;
+            }
+        }
+
+        private string _dateButtom;
+        public string DateButtom
+        {
+            get { return _dateButtom; }
+            set
+            {
+                _dateButtom = value;
+                OnPropertyChanged(nameof(DateButtom));
+            }
+        }
+
+        private string buttonDate;
+        public string ButtonDate
+        {
+            get { return buttonDate; }
+            set
+            {
+                if (buttonDate != value)
+                {
+                    buttonDate = value;
+                    OnPropertyChanged(nameof(ButtonDate));
+                }
+            }
+        }
+        private void Button_Measure(object parameter)
+        {
+            SelectedMeasurement = parameter as Measurement;
+            DateTime selectedDate = SelectedDate.Value;
+            string selectedCity = SelectedCity;
+            AvailableMeasurementsCount = _generatedMeasurementsCounts[selectedCity][selectedDate];
+
+            if(AvailableMeasurementsCount > 0)
+            {
+                AvailableMeasurementsCount = --_generatedMeasurementsCounts[selectedCity][selectedDate];
+                if (selectedDate != null && SelectedMeasurement != null)
+                {
+                    FilteredMeasur = Measurements.Where(m => m.Address.Contains(selectedCity) &&  !string.IsNullOrEmpty(m.ButtonDate)).ToList();
+                    CountMassage = selectedDate.ToString("dd.MM.yyyy") + " в городе " + selectedCity + " доступно замеров: " + AvailableMeasurementsCount;
+                    SelectedMeasurement.IsButtonVisible = false;
+                    SelectedMeasurement.ButtonDate = selectedDate.ToString("dd.MM.yyyy");
+
+                   
+                }
+                else
+                {
+                    MessageBox.Show("Пожалуйста, выберите дату замера.");
+                }
+            }
+            else
+            {
+                
+                MessageBox.Show(" В городе " + selectedCity+ " " + selectedDate.ToString("dd.MM.yyyy") + " замеров больше недоступно");
+
+            }
+            UpdateAvailableMeasurementsCount();
+            OnPropertyChanged();
+
+        }
+
+
+
+        private void UpdateButtonVisibility()
+        {
+            IsButtonVisible = IsButtonEnabled; 
+        }
+
+
+        private void UpdateAvailableMeasurementsCount()
+        {
+            if (!string.IsNullOrEmpty(SelectedCity) && !SelectedCity.Contains("город") && SelectedDate != null)
+            {
+
+                string selectedCity = SelectedCity;
+                DateTime selectedDate = SelectedDate.Value;
+                int measurementsCount;
+
+                if (!_generatedMeasurementsCounts.ContainsKey(selectedCity))
+                {
+                    _generatedMeasurementsCounts[selectedCity] = new Dictionary<DateTime, int>();
+                }
+
+                Dictionary<DateTime, int> cityMeasurementsCounts = _generatedMeasurementsCounts[selectedCity];
+
+                if (cityMeasurementsCounts.ContainsKey(selectedDate))
+                {
+                    measurementsCount = cityMeasurementsCounts[selectedDate];
+                }
+                else
+                {
+                    Random random = new Random();
+                    measurementsCount = random.Next(1, 10);
+                    cityMeasurementsCounts[selectedDate] = measurementsCount;
+                }
+
+                AvailableMeasurementsCount = measurementsCount;
+                FilteredMeasur = Measurements.Where(m => m.Address.Contains(selectedCity) && !string.IsNullOrEmpty(m.ButtonDate)).ToList();
+                CountMassage = selectedDate.ToString("dd.MM.yyyy") + " в городе " + selectedCity + " доступно замеров: " + AvailableMeasurementsCount;
+                foreach (var measurement in Measurements)
+                {
+                    if (measurement != SelectedMeasurement && string.IsNullOrEmpty(measurement.ButtonDate))
+                    {
+                        measurement.IsButtonVisible = true;
+                    }
+                    else
+                    {
+                        measurement.IsButtonVisible = false;
+                    }
+                }
+            }
+            else
+            {
+                CountMassage = string.Empty;
+                IsButtonVisible = false;
+            }
+        }
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

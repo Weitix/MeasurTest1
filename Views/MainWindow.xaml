@@ -7,20 +7,52 @@
         xmlns:vm="clr-namespace:MeasurTest.ViewModels"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="1000">
+    <Window.Resources>
+  
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
     <Window.DataContext>
         <vm:MainViewModel/>
     </Window.DataContext>
     <Grid>
-        <DataGrid ItemsSource="{Binding FilteredList}" AutoGenerateColumns="False" Margin="10,87,537,10" FontFamily="Bahnschrift SemiBold">
+        <DataGrid ItemsSource="{Binding FilteredList}" AutoGenerateColumns="False" Margin="10,87,476,10" FontFamily="Bahnschrift SemiBold">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding idNumber}" />
                 <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" />
                 <DataGridTextColumn Header="Адрес" Binding="{Binding Address}" />
                 <DataGridTextColumn Header="Номер телефона" Binding="{Binding PhoneNumber}" />
-                <DataGridTextColumn Header="Дата" Binding="{Binding Date}" />
+                <DataGridTemplateColumn Header="Дата">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding ButtonDate}" />
+                                <Button Content="Запланировать замер"
+                    Command="{Binding DataContext.MeasureCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                    CommandParameter="{Binding}"
+                    Visibility="{Binding IsButtonVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <DataGrid x:Name="dataGrid_Copy" d:ItemsSource="{d:SampleData ItemCount=8}" Margin="468,181,10,10" FontFamily="Bahnschrift SemiBold"/>
+        <DataGrid ItemsSource="{Binding FilteredMeasur}" AutoGenerateColumns="False" Margin="529,181,10,10"  FontFamily="Bahnschrift SemiBold">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding idNumber}" />
+                <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" />
+                <DataGridTextColumn Header="Адрес" Binding="{Binding Address}" />
+                <DataGridTextColumn Header="Номер телефона" Binding="{Binding PhoneNumber}" />
+                <DataGridTemplateColumn Header="Дата">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding ButtonDate}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
         <ComboBox x:Name="comboBox" HorizontalAlignment="Left" Margin="252,13,0,0" VerticalAlignment="Top" Width="185" IsEditable="True" SelectedValuePath="Content" SelectedValue="{Binding SelectedCity}" Text="Выберите город" FontFamily="Bahnschrift SemiBold" Height="26">
             <ComboBoxItem Content="Все города"/>
             <ComboBoxItem Content="Москва"/>
@@ -29,10 +61,10 @@
             <ComboBoxItem Content="Челябинск"/>
             <ComboBoxItem Content="Санкт-Петербург"/>
         </ComboBox>
-        <DatePicker x:Name="datePicker" HorizontalAlignment="Left" Margin="468,13,0,0" VerticalAlignment="Top" Height="26" FontFamily="Bahnschrift SemiBold" SelectedDate="{Binding SelectedDate}" SelectedDateFormat="Short"/>
+        <DatePicker x:Name="datePicker" HorizontalAlignment="Left" Margin="461,13,0,0" VerticalAlignment="Top" Height="26" FontFamily="Bahnschrift SemiBold" SelectedDate="{Binding SelectedDate}" SelectedDateFormat="Short"/>
         <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="280" FontFamily="Bahnschrift SemiBold" FontSize="24" FontWeight="Bold" Text="Расписание замеров" Height="32"/>
         <TextBlock x:Name="textBlock_Copy" HorizontalAlignment="Left" Margin="10,53,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="334" FontFamily="Bahnschrift SemiBold" FontSize="18" FontWeight="Bold" Height="23"><Run Language="ru-ru" Text="Клиенты ожидающие замера"/></TextBlock>
-        <TextBlock x:Name="textBlock_Copy1" HorizontalAlignment="Left" Margin="468,133,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="522" FontFamily="Bahnschrift SemiBold" FontSize="16" FontWeight="Bold" Height="43"><Run Text="{Binding  SelectedCity}"/></TextBlock>
-        <TextBlock x:Name="textBlock_Copy2" HorizontalAlignment="Left" Margin="468,87,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="522" FontFamily="Bahnschrift SemiBold" FontSize="16" FontWeight="Bold" Height="23"><Run Text="{Binding AvailableMeasurementsCount}" /></TextBlock>
+        <TextBlock x:Name="textBlock_Copy1" HorizontalAlignment="Left" Margin="529,154,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="461" FontFamily="Bahnschrift SemiBold" FontSize="16" FontWeight="Bold" Height="22"><Run Text="{Binding SelectedCity}"/></TextBlock>
+        <TextBlock x:Name="textBlock_Copy2" HorizontalAlignment="Left" Margin="529,88,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="461" FontFamily="Bahnschrift SemiBold" FontSize="16" FontWeight="Bold" Height="23"><Run Text="{Binding CountMassage}" /></TextBlock>
     </Grid>
 </Window>

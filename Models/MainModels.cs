@@ -39,6 +39,35 @@ namespace MeasurTest.Model
             set { SetProperty(ref date, value); }
         }
 
+        private string buttonDate;
+        public string ButtonDate
+        {
+            get { return buttonDate; }
+            set
+            {
+                if (buttonDate != value)
+                {
+                    buttonDate = value;
+                    OnPropertyChanged(nameof(ButtonDate));
+                }
+            }
+        }
+
+        private bool _isButtonVisible;
+
+        public bool IsButtonVisible
+        {
+            get { return _isButtonVisible; }
+            set
+            {
+                if (_isButtonVisible != value)
+                {
+                    _isButtonVisible = value;
+                    OnPropertyChanged(nameof(IsButtonVisible));
+                }
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
@@ -50,7 +79,7 @@ namespace MeasurTest.Model
             }
         }
 
-        protected void OnPropertyChanged(string propertyName)
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
